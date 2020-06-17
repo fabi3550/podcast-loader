@@ -56,7 +56,7 @@ class PodcastLoader(object):
             except OSError as e:
                 logging.error(e)
 
-            logging.info("Stopped PodcastLoader")
+        logging.info("Stopped PodcastLoader")
                     
     # read configuration file
     # function checks for different kind of json errors
