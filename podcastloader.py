@@ -14,7 +14,7 @@ class PodcastLoader(object):
         logging.info("Started PodcastLoader")
 
         # read config file
-        self.configuration = self.read_config_file("podcastloader.conf")
+        self.configuration = self.read_config_file(os.path.join(os.getcwd(), "podcastloader.conf"))
         logging.debug(self.configuration)
 
         # iterate podcast list
