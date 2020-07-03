@@ -1,20 +1,21 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 import logging
 import requests
 import json
 import xml.dom.minidom
 import os
+import sys
 
 class PodcastLoader(object):
 
     def __init__(self):
 
         # init logging module
-        logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+        logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
         logging.info("Started PodcastLoader")
 
         # read config file
-        self.configuration = self.read_config_file(os.path.join(os.getcwd(), "podcastloader.conf"))
+        self.configuration = self.read_config_file(os.path.join(os.path.dirname(sys.argv[0]), "podcastloader.conf"))
         logging.debug(self.configuration)
 
         # iterate podcast list
