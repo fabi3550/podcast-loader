@@ -115,6 +115,9 @@ class PodcastLoader(object):
 
                 logging.debug(episode)
 
+                # issue 1: if no url is found in rss feed, the application
+                # crashes - this is fixed now
+                # https://github.com/fabi3550/podcast-loader/issues/1
                 if all (keys in episode for keys in ('title','url')):
                     episodes.append(episode)
                     counter += 1
