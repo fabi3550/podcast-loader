@@ -114,8 +114,10 @@ class PodcastLoader(object):
                             episode["url"] = node.getAttribute("url")
 
                 logging.debug(episode)
-                episodes.append(episode)
-                counter += 1
+
+                if all (keys in episode for keys in ('title','url')):
+                    episodes.append(episode)
+                    counter += 1
 
                 if counter == max_episodes:
                     break
