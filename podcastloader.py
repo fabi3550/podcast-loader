@@ -11,7 +11,7 @@ class PodcastLoader(object):
     def __init__(self):
 
         # init logging module
-        logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
+        logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
         logging.info("Started PodcastLoader")
 
         # read config file
@@ -20,8 +20,18 @@ class PodcastLoader(object):
 
         # iterate podcast list
         for podcast in self.configuration["podcasts"]:
-            logging.debug("found %s (%s)" % (podcast["podcast"], podcast["url"]))
-            rss_feed = self.load_rss_information(podcast["url"], podcast["episodes"])
+
+            # fix for issues 2 and 3: 'podcast' and 'url' will now checked.
+            # episodes is an optional parameter. if not set, all episodes will be downloaded
+            # https://github.com/fabi3550/podcast-loader/issues/2
+            # https://github.com/fabi3550/podcast-loader/issues/3
+            if all (keys in podcast for keys in ('podcast', 'url')):
+                logging.debug("found %s (%s)" % (podcast["podcast"], podcast["url"]))
+                if "episodes" in podcast:
+                    rss_feed = self.load_rss_information(podcast["url"], podcast["episodes"])
+                else:
+                    rss_feed = self.load_rss_information(podcast["url"])
+                    
             logging.debug(rss_feed)
 
             try:
@@ -88,7 +98,9 @@ class PodcastLoader(object):
         
     # load rss information
     # returns a list of podcast episode urls
-    def load_rss_information(self, url, max_episodes):
+
+    # fix for issues 2 and 3: max_episodes is now an optional parameter
+    def load_rss_information(self, url, max_episodes=None):
 
         episodes = []
 
