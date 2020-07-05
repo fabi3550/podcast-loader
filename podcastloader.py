@@ -80,6 +80,7 @@ class PodcastLoader(object):
             f = open(config_file, "r")
             configuration = json.loads(f.read())
             is_config_file_found = True
+            f.close()
             
         except IOError as e:
             logging.error(e)
@@ -136,7 +137,8 @@ class PodcastLoader(object):
 
                 if counter == max_episodes:
                     break
-        
+
+            response.close()
         except requests.ConnectionError as e:
             logging.error(e)
 
@@ -162,6 +164,8 @@ class PodcastLoader(object):
                 for chunk in response.iter_content(chunk_size=1024):
                     if chunk:
                         episode.write(chunk)
+
+            episode.close()
         
         except requests.HTTPError as e:
             logging.error(e)
