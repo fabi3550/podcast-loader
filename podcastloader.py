@@ -5,6 +5,7 @@ import json
 import xml.dom.minidom
 import os
 import sys
+from podcastloadertwitter import PodcastTwitter
 
 class PodcastLoader(object):
 
@@ -18,6 +19,24 @@ class PodcastLoader(object):
         self.configuration = self.read_config_file(os.path.join(os.path.dirname(sys.argv[0]), "podcastloader.conf"))
         logging.debug(self.configuration)
 
+        # check for twitter auth information
+        has_twitter = False
+        
+        try:
+            if 'twitter' in self.configuration:
+                if all (keys in self.configuration['twitter'] for keys in ('consumer_key', 'consumer_secret', 'access_token', 'access_token_secret')):
+                    has_twitter = True
+                    logging.info("Found Twitter Account data")
+                
+        except KeyError as e:
+            logging.error(e)
+
+        except TypeError as e:
+            logging.error(e)
+
+        # dict for possible twitter notifications
+        twitter_dm = {}
+        
         # iterate podcast list
         for podcast in self.configuration["podcasts"]:
 
@@ -37,6 +56,7 @@ class PodcastLoader(object):
             try:
 
                 podcast_directory = os.path.join(self.configuration["target_directory"], podcast["podcast"])
+                loaded_episodes = []
             
                 # create podcast subdirectory if not exists
                 if not os.path.exists(podcast_directory):
@@ -50,7 +70,17 @@ class PodcastLoader(object):
 
                     if not filename in os.listdir(podcast_directory):
                         logging.info("downloading %s to %s" % (filename, podcast_directory))
-                        self.download_episode(rss_entry ["url"], podcast_directory)
+                        self.download_episode(rss_entry["url"], podcast_directory)
+
+                        # if twitter notifications are enabled, collect data about the loaded episodes
+                        if has_twitter:
+                            podcast_information = [rss_entry["title"]]
+
+                            if 'description' in rss_entry:
+                                podcast_information.append(rss_entry["description"][:100] + "...")
+
+                            loaded_episodes.append(podcast_information)
+                            
 
                     # checking reverse - are there too much podcasts?
                     for podcast_file in os.listdir(podcast_directory):
@@ -67,7 +97,31 @@ class PodcastLoader(object):
             except OSError as e:
                 logging.error(e)
 
+            twitter_dm[podcast["podcast"]] = loaded_episodes
+            logging.debug(twitter_dm)
+                
+        if has_twitter:
+            
+            message_text = ""
+
+            for loaded_podcast in twitter_dm:
+
+                if len(twitter_dm[loaded_podcast]) > 0:
+                    message_text += "Podcast: " + loaded_podcast + "\r\n"
+                    for loaded_episode in twitter_dm[loaded_podcast]:
+                        message_text += "Episode " + loaded_episode[0] + "\r\n"
+
+                        if len(loaded_episode) > 1:
+                            message_text += "Beschreibung " + loaded_episode[1] + "\r\n"
+
+            if len(message_text) > 0:
+                str_twitter_dm = "Neue Podcasts verfügbar: \r\n" + message_text
+                logging.info("Sending message: \r\n " + str_twitter_dm)
+                podcast_twitter = PodcastTwitter(self.configuration["twitter"])
+                podcast_twitter.send_direct_message("fabi3550", str_twitter_dm)
+                            
         logging.info("Stopped PodcastLoader")
+        
                     
     # read configuration file
     # function checks for different kind of json errors
@@ -95,6 +149,7 @@ class PodcastLoader(object):
 
         if is_config_file_found:
             return configuration
+        
         
     # load rss information
     # returns a list of podcast episode urls
@@ -147,6 +202,7 @@ class PodcastLoader(object):
             logging(e)
 
         return episodes
+    
 
     # downloads an podcast episode to the given directory
     def download_episode(self, url, target_directory):
