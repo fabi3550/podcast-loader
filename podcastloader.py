@@ -109,10 +109,10 @@ class PodcastLoader(object):
                 if len(twitter_dm[loaded_podcast]) > 0:
                     message_text += "Podcast: " + loaded_podcast + "\r\n"
                     for loaded_episode in twitter_dm[loaded_podcast]:
-                        message_text += "Episode " + loaded_episode[0] + "\r\n"
+                        message_text += "Episode: " + loaded_episode[0] + "\r\n"
 
                         if len(loaded_episode) > 1:
-                            message_text += "Beschreibung " + loaded_episode[1] + "\r\n"
+                            message_text += "Beschreibung: " + loaded_episode[1] + "\r\n"
 
             if len(message_text) > 0:
                 str_twitter_dm = "Neue Podcasts verfügbar: \r\n" + message_text
